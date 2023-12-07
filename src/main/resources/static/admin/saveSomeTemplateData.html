@@ -14,17 +14,12 @@
 </head>
 <body>
 <div style="padding: 20px">
-	<form method="post">
-		<table>
-			<tr>
-				<td>模板名称：</td>
-				<td><input type="text" id="templateName" name="templateName" class="layui-input" style="width: 300px"/></td>
-			</tr>
-
-			<tr>
-				<td><button class="layui-btn" onclick="submitData();return false;">提交</button></td>
-				<td><font id="errorInfo" color="red"></font></td>
-			</tr>
+	<form class="form" method="post">
+		<table class="table">
+<!--			<tr>-->
+<!--				<td><button class="layui-btn" onclick="submitData();return false;">提交</button></td>-->
+<!--				<td><font id="errorInfo" color="red"></font></td>-->
+<!--			</tr>-->
 		</table>
 	</form>
 </div>
@@ -32,40 +27,100 @@
 <script src="/statics/js/jquery.js"></script>
 <script src="/statics/js/common.js"></script>
 <script type="text/javascript">
-
-    layui.use(['form'], function(){
-
-    });
+	var jsonData = [
+	];
 
 	function submitData(){
-		var templateName=$("#templateName").val().trim();
-		if(name=="") {
-	　　　　     　　 $("#errorInfo").text("请输入模板名称！");
-			  $("#templateName").focus();
-	　　　　　　      return false;
-	　　　}
-	   var id=getQueryVariable("id");
-	   if(id){
-		   $.post("/form/saveTemplateName",{id:id,templateName:templateName},function(result){
-			  if(result.success){
-                  layer.alert('修改成功！',function () {
-                      parent.reloadPage();
-                  });
-			  }else{
-				  $("#errorInfo").text(result.msg);
-			  }
-		  },"json");
-	   }else {
-		   $.post("/form/saveTemplateName",{templateName:templateName},function(result){
-			   if(result.success){
-				   layer.alert('添加成功！',function () {
-					   parent.reloadPage();
-				   });
-			   }else{
-				   $("#errorInfo").text(result.msg);
-			   }
-		   },"json");
-	   }
+
+		var dataId = getQueryVariable("dataId");
+		var id = getQueryVariable("id");
+		var i = true;
+		var array = [];
+		if (dataId){
+			var rowData = {};
+			$("table").each(function () {
+				$(this).find("input").each(function () {
+						for (var i = 0; i < jsonData.length; i++) {
+							console.log(jsonData[i].required)
+							if (jsonData[i].fieldName === this.name && jsonData[i].required === "是"){
+								if ($(this).val() === ""){
+									// layer.msg("字段" + this.name + "不能为空！");
+									// return
+									//判段是否为空
+
+									array.push(this.name);
+								}else {
+									rowData[this.name] = $(this).val();
+								}
+							}else {
+								rowData[this.name] = $(this).val();
+							}
+						}
+				});
+			});
+			if (array.length === 0) {
+				console.log(rowData);
+				$.post("/templateData/saveTemplateData", {
+					id: id,
+					TemplateData: JSON.stringify(rowData),
+					dataId: dataId
+				}, function (result) {
+					if (result.success) {
+						layer.alert('修改成功！', function () {
+							parent.reloadPage();
+						});
+					} else {
+						layer.alert('服务器加载有问题，请联系管理员！');
+					}
+				}, "json");
+			}else {
+				var str = "";
+				for (var i = 0; i < array.length; i++) {
+					str = str + array[i] + "、";
+				}
+				layer.msg(str+"未填");
+			}
+
+		}else {
+			var rowData = {};
+			$("table").each(function () {
+				$(this).find("input").each(function () {
+						for (var i = 0; i < jsonData.length; i++) {
+							console.log(jsonData[i].required)
+							if (jsonData[i].fieldName === this.name && jsonData[i].required === "是"){
+								if ($(this).val() === ""){
+									//
+									array.push(this.name);
+								}else {
+									rowData[this.name] = $(this).val();
+								}
+							}else {
+								rowData[this.name] = $(this).val();
+							}
+						}
+				});
+			});
+
+
+			console.log(rowData);
+			if (array.length === 0) {
+				$.post("/templateData/saveTemplateData", {
+					id: id,
+					TemplateData: JSON.stringify(rowData)
+				}, function (result) {
+					if (result.success) {
+						layer.alert('添加成功！', function () {
+							parent.reloadPage();
+						});
+					} else {
+						layer.alert('服务器加载有问题，请联系管理员！');
+					}
+				}, "json");
+			}else {
+				layer.msg("请填写完整！");
+			}
+
+		}
 	}
 
 
@@ -78,23 +133,60 @@
 	               if(pair[0] == variable){return pair[1];}
 	       }
 	       return(false);
+
 	}
 
-	$(function(){
-	　　
+	$(document).ready(function(){
+
 		var id=getQueryVariable("id");
+		var dataId=getQueryVariable("dataId")
 
 		if(id){
-			$.post("/form/findById",{id:id},function(result){
-				  if(result.success){
-					  var data=result.data;
-					  $("#templateName").val(data.templateName);
-				  }else{
-                      layer.alert('服务器加载有问题，请联系管理员！');
-				  }
-			  },"json");
+			$.post("/form/getTemplateJsonById",{id:id},function(result){
+				if(result.success){
+					jsonData = result.jsonData;
+					createForm(jsonData);
+					if (dataId){
+						$.post("/templateData/getTemplateDataById",{id:id,dataId:dataId},function(result){
+							if(result.success){
+								var data=result.data;
+								console.log(data["字段1"])
+								for (let i = 0; i < data.length; i++) {
+									for (let j = 0; j < jsonData.length; j++) {
+										console.log(data[i][jsonData[j].fieldName])
+										$("#"+jsonData[j].fieldName).val(data[i][jsonData[j].fieldName]);
+									}
+								}
+
+							}else{
+								layer.alert('服务器加载有问题，请联系管理员！');
+							}
+						})
+					}
+				}else{
+					layer.alert('服务器加载有问题，请联系管理员！');
+				}
+			},"json");
 		}
 	});
+
+	function createForm(jsonData) {
+		for (let i = 0; i < jsonData.length; i++) {
+			console.log(jsonData[i])
+			var tr = '';
+			if (jsonData[i].required == "是"){
+				tr = '<tr><td style="color: red">'+jsonData[i].fieldName+'：</td><td><input type="text" id='+jsonData[i].fieldName+' name='+jsonData[i].fieldName+' class="layui-input" style="width: 300px"/></td></tr>';
+			}else {
+				tr = '<tr><td>' + jsonData[i].fieldName + '：</td><td><input type="text" id=' + jsonData[i].fieldName + ' name=' + jsonData[i].fieldName + ' class="layui-input" style="width: 300px"/></td></tr>';
+			}
+			document.querySelector('table').innerHTML += tr;
+		}
+		document.querySelector('table').innerHTML += '<tr>\n' +
+				'\t\t\t\t<td><button id="submit" class="layui-btn" onclick="submitData();return false;">提交</button></td>\n' +
+				'\t\t\t\t<td><font id="errorInfo" color="red"></font></td>\n' +
+				'\t\t\t</tr>';
+	}
+
 
 
 </script>

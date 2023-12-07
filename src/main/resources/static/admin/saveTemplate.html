@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>添加或者修改Tag标签</title>
+<title>添加或者修改Template</title>
 <link rel="stylesheet" href="/statics/layui/css/layui.css"></link>
 <style type="text/css">
 
@@ -17,15 +17,10 @@
 	<form method="post">
 		<table>
 			<tr>
-				<td>模板名：</td>
+				<td>模板名称：</td>
+				<td><input type="text" id="templateName" name="templateName" class="layui-input" style="width: 300px"/></td>
 			</tr>
-			<tr>
-				<td>Tag标签名称：</td>
-				<td><input type="text" id="name" name="name" class="layui-input" style="width: 300px"/></td>
-			</tr>
-			<tr>
-				<input type="button" id="add" name="add" class="layui-btn" value="添加" onclick="addField()"/>
-			</tr>
+
 			<tr>
 				<td><button class="layui-btn" onclick="submitData();return false;">提交</button></td>
 				<td><font id="errorInfo" color="red"></font></td>
@@ -43,44 +38,38 @@
     });
 
 	function submitData(){
-		var name=$("#name").val().trim();
-		var sort=$("#sort").val().trim();
+		var templateName=$("#templateName").val().trim();
+		if (templateName=="template"){
+			$("#errorInfo").text("模板名称不能为template");
+			$("#templateName").focus();
+			return false;
+		}
 		if(name=="") {
-	　　　　     　　 $("#errorInfo").text("请输入Tag标签名称！");
-			  $("#name").focus();
+	　　　　     　　 $("#errorInfo").text("请输入模板名称！");
+			  $("#templateName").focus();
 	　　　　　　      return false;
 	　　　}
-		if(sort=="") {
-	　　　　     　　 $("#errorInfo").text("请输入排列序号！");
-			  $("#sort").focus();
-	　　　　　　      return false;
-	　　　}
-	　　　if (!(/(^[1-9]\d*$)/.test(sort))) {
-	　　　　　　$("#errorInfo").text("排列序号必须是正整数！");
-        	$("#sort").focus();
-	　　　　　　return false;
-	　　  }
 	   var id=getQueryVariable("id");
 	   if(id){
-		   $.post("/admin/tag/save",{id:id,name:name,sort:sort},function(result){
+		   $.post("/form/saveTemplateName",{id:id,templateName:templateName},function(result){
 			  if(result.success){
                   layer.alert('修改成功！',function () {
                       parent.reloadPage();
                   });
 			  }else{
-				  $("#errorInfo").text(result.errorInfo);
+				  $("#errorInfo").text(result.msg);
 			  }
 		  },"json");
-	   }else{
-		   $.post("/admin/tag/save",{name:name,sort:sort},function(result){
-				  if(result.success){
-                      layer.alert('添加成功！',function () {
-                          parent.reloadPage();
-                      });
-				  }else{
-					  $("#errorInfo").text(result.errorInfo);
-				  }
-			  },"json");
+	   }else {
+		   $.post("/form/saveTemplateName",{templateName:templateName},function(result){
+			   if(result.success){
+				   layer.alert('添加成功！',function () {
+					   parent.reloadPage();
+				   });
+			   }else{
+				   $("#errorInfo").text(result.msg);
+			   }
+		   },"json");
 	   }
 	}
 
@@ -99,13 +88,11 @@
 	$(function(){
 	　　
 		var id=getQueryVariable("id");
-
 		if(id){
-			$.post("/admin/tag/findById",{id:id},function(result){
+			$.post("/form/findById",{id:id},function(result){
 				  if(result.success){
-					  var tag=result.tag;
-					  $("#name").val(tag.name);
-					  $("#sort").val(tag.sort);
+					  var data=result.data;
+					  $("#templateName").val(data.templateName);
 				  }else{
                       layer.alert('服务器加载有问题，请联系管理员！');
 				  }

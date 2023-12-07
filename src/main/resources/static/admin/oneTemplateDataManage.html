@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Demo</title>
+	<link href="/statics/layui/css/layui.css" rel="stylesheet">
+</head>
+<body>
+<div style="padding: 20px">
+
+    <span class="layui-breadcrumb">
+                  <a>首页</a>
+                  <a><cite>模板字段管理</cite></a>
+    </span>
+	<div style="padding-top: 20px;">
+		<div class="layui-inline" style="width: 200px; padding-top: 20px;" >
+			<i class="layui-icon layui-icon-return"></i>
+		</div>
+		<div class="layui-inline">
+			<!--        <h1  id="templateName" name="templateName"></h1>-->
+			<input readonly style="border: 0" type="text" id="templateName" name="templateName" class="layui-input" style="width: 300px"/></td>
+		</div>
+		<div class="layui-inline">
+			<button type="button" class="layui-btn" lay-filter="addBtn" onclick="handleAddField()">添加数据</button>
+		</div>
+		<div>
+			<table class="layui-hide" id="ID-table-demo-editmodes"></table>
+		</div>
+	</div>
+</div>
+</div>
+<script src="/statics/layui/layui.js"></script>
+<script src="/statics/js/jquery.js"></script>
+<script src="/statics/js/common.js"></script>
+<script>
+	var jsonData = [
+	];
+	var templateName="";
+	var oldJsonData=[];
+	// var jsonData=[];
+	$(".layui-icon-return").click(function(){
+
+		window.history.back();
+
+	});
+
+	function getQueryVariable(variable){
+		var query = window.location.search.substring(1);
+		var vars = query.split("&");
+		for (var i=0;i<vars.length;i++) {
+			var pair = vars[i].split("=");
+			if(pair[0] == variable){return pair[1];}
+		}
+		return(false);
+	}
+	function handleAddField(){
+		var id=getQueryVariable("id");
+		layer.open({
+			type: 2,
+			title: templateName+'模板数据添加',
+			area: ['500px', '500px'],
+			content: '/admin/saveSomeTemplateData.html?id='+id //iframe的url
+		});
+
+	}
+	
+	$(document).ready(function(){
+
+		var id=getQueryVariable("id");
+
+		if(id){
+			console.log("aaa")
+			$.post("/form/findById",{id:id},function(result){
+				if(result.success){
+					var data=result.data;
+					templateName = data.templateName;
+					$("#templateName").val(data.templateName + "模板");
+				}else{
+					layer.alert('服务器加载有问题，请联系管理员！');
+				}
+			},"json");
+			$.post("/form/getTemplateJsonById",{id:id},function(result){
+				if(result.success){
+					var data=result.jsonData;
+					var table = layui.table;
+					console.log(data)
+					console.log(data.length)
+					jsonData = data;
+				}else{
+					layer.alert('服务器加载有问题，请联系管理员！');
+				}
+			},"json");
+		}
+	});
+	layui.use('table', function(){
+		var id=getQueryVariable("id");
+		var table = layui.table;
+		var cols = [
+				// {
+				// 	field: 'aaa',
+				// 	title: 'aaa',
+				// 	align: 'center'
+				// }
+		];
+		var tableData = [];
+		$.post("/form/getTemplateJsonById", {id: id}, function(result) {
+			var templateName = getQueryVariable("templateName")
+			if (result.success) {
+				var data = result.jsonData;
+				var table = layui.table;
+				console.log(data);
+				console.log(data.length);
+				jsonData = data;
+				oldJsonData = data;
+				cols = createCols(data);
+				console.log(cols)
+				table.render({ // 使用table模块的render方法渲染表格
+					elem: '#ID-table-demo-editmodes', // 指定表格的ID
+					url:'/templateData/list',
+					cols: [cols], // 设置表头
+					page: true,
+					where: {
+						templateName: templateName
+					},
+				});
+				function createCols(data){
+					var id = getQueryVariable("id");
+					console.log("test:"+data)
+					for (var i = 0; i < data.length; i++) {
+						if (data[i].fieldName != ""){
+							var obj = data[i];
+							cols.push({
+								field: obj.fieldName,
+								title: obj.fieldName,
+								rowspan: 2
+							});
+						}
+					}
+					cols.push({
+						fixed:'right',
+						field: 'action',
+						title: '操作',
+						width: 180,
+						templet: function(d){
+							return `
+								<button class='layui-btn layui-btn-normal layui-btn-xs' onclick='modifyTemplate("${d._id}")'>
+									<i class='layui-icon layui-icon-edit'></i>编辑
+								</button>
+								<button class='layui-btn layui-btn-warm layui-btn-xs' onclick='deleteOne("${d._id}")'>
+									<i class='layui-icon layui-icon-delete'></i>删除
+								</button>
+							`;
+						}
+
+					});
+					console.log("test:"+cols.length)
+					return cols
+				}
+			} else {
+				layer.alert('服务器加载有问题，请联系管理员！');
+			}
+		}, "json");
+
+	});
+	function modifyTemplate(id1){
+		var id=getQueryVariable("id");
+		layer.open({
+			type: 2,
+			title: '修改'+templateName+'模板数据',
+			area: ['500px', '500px'],
+			content: '/admin/saveSomeTemplateData.html?id='+id+'&dataId='+id1 //iframe的url
+		});
+	}
+	function deleteOne(dataId){
+		var id = getQueryVariable("id")
+		var table = layui.table;
+		layer.confirm('您确定要删除这条记录吗？', {
+			title:"系统提示"
+			,btn: ['确定','取消'] //按钮
+		}, function(){
+			layer.closeAll('dialog');
+			$.post("/templateData/delete",{"id":id,"dataId":dataId},function(result){
+				if(result.success){
+					layer.msg("删除成功！");
+					table.reload("ID-table-demo-editmodes",{});
+				}else{
+					layer.msg("删除失败，请联系管理员！");
+				}
+			},"json");
+		}, function(){
+
+		});
+	}
+
+</script>
+
+</body>
+</html>

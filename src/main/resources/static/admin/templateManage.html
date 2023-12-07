@@ -1,176 +1,167 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>帖子管理</title>
-<link rel="stylesheet" href="/statics/layui/css/layui.css"></link>
-<link rel="stylesheet" href="/statics/css/css.css"></link>
+	<meta charset="UTF-8">
+	<title>Tag标签管理</title>
+	<link rel="stylesheet" href="/statics/layui/css/layui.css"></link>
+	<link rel="stylesheet" href="/statics/css/css.css"></link>
 </head>
 <body>
 
-	<script type="text/html" id="hotSwitchTpl">
-		<!-- 这里的 checked 的状态只是演示 -->
-		<input type="checkbox" name="{{d.id}}" value="{{d.hot}}" lay-skin="switch" lay-filter="hotSwitch" lay-text="&nbsp;是&nbsp;|&nbsp;否&nbsp;" {{ d.hot == true ? 'checked' : '' }}>
-	</script>
 
-	<div style="padding: 20px">
+<div style="padding: 20px">
 	        <span class="layui-breadcrumb">
 			  <a>首页</a>
-			  <a><cite>帖子管理</cite></a>
+			  <a><cite>模板管理</cite></a>
 			</span>
-		    <div style="padding-top: 20px;">
-				<div style="padding: 20px">
-					<div class="layui-form">
-
-						<div class="layui-inline">
-							<label class="layui-form-label">文章标题：</label>
-							<div class="layui-input-inline">
-								<input type="text" id="s_title"  placeholder="请输入" autocomplete="off" style="width: 400px" class="layui-input" onkeydown="if(event.keyCode==13) search()"/>
-							</div>
-						</div>
-
-
-						<div class="layui-inline">
-							<button class="layui-btn layuiadmin-btn-list"  lay-submit="" onclick="search()" lay-filter="LAY-app-contlist-search">
-								<i class="layui-icon layui-icon-search layuiadmin-button-btn" ></i>
-							</button>
-						</div>
-					</div>
-			    <div>
-				    <table width="100%" id="articleListTable" ></table>
-			    </div>
+	<div style="padding-top: 20px;">
+		<div>
+			<div>
+				<button class="layui-btn layuiadmin-btn-list" data-type="batchdel" onclick="addTemplate()">添加</button>
 			</div>
-	  </div>
+		</div>
+		<div>
+			<table width="100%" id="tagListTable" ></table>
+		</div>
+	</div>
+</div>
 
 <script src="/statics/layui/layui.js"></script>
 <script src="/statics/js/jquery.js"></script>
 <script src="/statics/js/common.js"></script>
 <script type="text/javascript">
-
-
-
-	function formattedDate(obj){
-		const date = new Date(obj.publishDate);
-		const year = date.getFullYear();
-		const month = (date.getMonth() + 1).toString().padStart(2, '0');
-		const day = date.getDate().toString().padStart(2, '0');
-		const formattedDate = `${year}-${month}-${day}`;
-		return formattedDate
+	function formattedDateCreate(dateString){
+		// 解析 ISO 8601 日期时间字符串
+		const isoDate = new Date(dateString.createTime);
+		// 获取年、月、日、时、分、秒、毫秒
+		const year = isoDate.getFullYear();
+		const month = isoDate.getMonth() + 1; // 月份从 0 开始，所以要加 1
+		const day = isoDate.getDate();
+		const hours = isoDate.getHours();
+		const minutes = isoDate.getMinutes();
+		const seconds = isoDate.getSeconds();
+		const milliseconds = isoDate.getMilliseconds();
+		// 格式化日期时间
+		const formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')} ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds}`;
+		return formattedDate;
+	}
+	function formattedDateUpdate(dateString){
+		// 解析 ISO 8601 日期时间字符串
+		const isoDate = new Date(dateString.updateTime);
+		// 获取年、月、日、时、分、秒、毫秒
+		const year = isoDate.getFullYear();
+		const month = isoDate.getMonth() + 1; // 月份从 0 开始，所以要加 1
+		const day = isoDate.getDate();
+		const hours = isoDate.getHours();
+		const minutes = isoDate.getMinutes();
+		const seconds = isoDate.getSeconds();
+		const milliseconds = isoDate.getMilliseconds();
+		// 格式化日期时间
+		const formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')} ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds}`;
+		return formattedDate;
 	}
 
-
-
-
 	layui.use(['element','form','table'], function(){
-	     var form=layui.form;
-		  var element = layui.element; //导航的hover效果、二级菜单等功能，需要依赖element模块
-		  $ = layui.jquery; // 使用jquery
-		  table = layui.table;
+		var form=layui.form;
+		var element = layui.element; //导航的hover效果、二级菜单等功能，需要依赖element模块
+		$ = layui.jquery; // 使用jquery
+		table = layui.table;
 
-		  table.render({
-		    elem: '#articleListTable'
-		    ,url:'/admin/article/list'
-		    ,cols: [[
-			  {type:'checkbox'}
-              ,{field:'id', width:100,title: '编号'}
-		      ,{field:'title',title: '帖子标题'}
-		      ,{field:'publishDate', width:150,title: '发布日期',templet:formattedDate}
-		      ,{field:'hot', width:100, title: '热门？',align:'center',templet:hotSwitchTpl}
-		      ,{field:'action', width:250, title: '操作',align:'center',templet:formatAction}
-		    ]]
-		    ,page: true
-		  });
-
-		// 监听用户状态操作
-		form.on('switch(hotSwitch)', function(obj){
-			$.post("/admin/article/updateHotState",{"id":this.name,"hot":obj.elem.checked},function(result){
-				if(result.success){
-					layer.msg("执行成功！");
-					table.reload("articleListTable",{});
-				}else{
-					layer.msg("执行失败，请联系管理员！");
-				}
-			},"json");
-
+		table.render({
+			elem: '#tagListTable'
+			,url:'/form/list'
+			,cols: [[
+				{type:'checkbox'}
+				// ,{field:'_id', width:100,title: '编号'}
+				,{field:'templateName', title: '模板名称'}
+				,{field:'createTime', title: '创建时间',templet:formattedDateCreate}
+				,{field:'updateTime', title: '更新时间',templet:formattedDateUpdate}
+				,{ fixed:'right',field:'action', width:340, title: '操作',align:'center',templet:formatAction}
+			]]
+			,page: true
 		});
 
 
 	});
 
 
-	function search(){
-		var s_title=$("#s_title").val();
-		table.reload("articleListTable",{
-			page:{
-				curr:1
-			}
-			,where:{
-				title:s_title
-			}
-		})
-	}
-
-
 	function deleteOne(id){
 		layer.confirm('您确定要删除这条记录吗？', {
-	    title:"系统提示"
-		  ,btn: ['确定','取消'] //按钮
+			title:"系统提示"
+			,btn: ['确定','取消'] //按钮
 		}, function(){
 			layer.closeAll('dialog');
-			$.post("/admin/article/delete",{"id":id},function(result){
-				if(result.success){
-					layer.msg("删除成功！");
-					table.reload("articleListTable",{});
-				}else{
-					layer.msg("删除失败，请联系管理员！");
-				}
-			},"json");
+			// $.post("form/deleteTemplate",{"id":id},function(result){
+			// 	if(result.success){
+			// 		layer.msg("删除成功！");
+			// 		table.reload("tagListTable",{});
+			// 	}else{
+			// 		layer.msg("删除失败，请联系管理员！");
+			// 	}
+			// },"json");
+			layer.confirm('您真确定要删除这条记录吗？删除了这个模板的所有数据都没有了，请三思', {
+				title:"系统提示"
+				,btn: ['确定','取消'] //按钮
+			}, function(){
+				layer.closeAll('dialog');
+
+				$.post("/form/deleteTemplate",{"_id":id},function(result){
+					if(result.success){
+						layer.msg("删除成功！");
+						table.reload("tagListTable",{});
+					}else{
+						layer.msg("删除失败，请联系管理员！");
+					}
+				})
+			}, function(){
+
+			});
 		}, function(){
 
 		});
 	}
 
-	function addArticle(){
+	function addTemplate(){
 		layer.open({
-			  type: 2,
-			  title: '添加友情链接',
-			  area: ['500px', '500px'],
-			  content: '/admin/saveArticle.html' //iframe的url
-			});
+			type: 2,
+			title: '添加模板',
+			area: ['500px', '500px'],
+			content: '/admin/saveTemplate.html' //iframe的url
+		});
 	}
 
-	function modifyArticle(id){
+	function modifyTemplate(id){
 		layer.open({
-			  type: 2,
-			  title: '修改友情链接',
-			  area: ['500px', '500px'],
-			  content: '/admin/saveArticle.html?id='+id //iframe的url
-			});
+			type: 2,
+			title: '修改模板',
+			area: ['500px', '500px'],
+			content: '/admin/saveTemplate.html?id='+id //iframe的url
+		});
 	}
+	function modifyTemplateFieid(id){
+		// layer.open({
+		// 	type: 2,
+		// 	title: '修改模板',
+		// 	area: ['500px', '500px'],
+		// 	content: '/admin/saveTemplate.html?id='+id //iframe的url
+		// });
 
-	function publishArticle(id){
-		$.post("/admin/article/publish",{"id":id},function(result){
-			if(result.success){
-				layer.msg("发布成功！");
-				table.reload("articleListTable",{});
-			}else{
-				layer.msg("发布失败，请联系管理员！");
-			}
-		},"json");
-	}
-
-	function modifyArticle(id){
-		window.location.href="saveArticle.html?id="+id
+		window.location.href = '/admin/saveTemplateField.html?id='+id;
 	}
 
 
-	function formatAction(d){
-		var s="<button class='layui-btn layui-btn-normal layui-btn-xs' onclick='modifyArticle("+d.id+")'><i class='layui-icon layui-icon-edit'></i>编辑</button><button class='layui-btn layui-btn-warm layui-btn-xs' onclick='deleteOne("+d.id+")'><i class='layui-icon layui-icon-delete' ></i>删除</button>";
-		if(d.status==2){
-			return s;
-		}else{
-			return "<button th:if='${d.status!=2}' class='layui-btn layui-btn layui-btn-xs' onclick='publishArticle("+d.id+")'><i class='layui-icon layui-icon-edit'></i>发布帖子</button>"+s;
-		}
+	function formatAction(d) {
+		return `
+        <button class='layui-btn layui-btn-normal layui-btn-xs' onclick='modifyTemplate("${d._id}")'>
+            <i class='layui-icon layui-icon-edit'></i>编辑
+        </button>
+        <button class='layui-btn layui-btn-normal layui-btn-xs' onclick='modifyTemplateFieid("${d._id}")'>
+            <i class='layui-icon layui-icon-edit'></i>编辑模板字段
+        </button>
+        <button class='layui-btn layui-btn-warm layui-btn-xs' onclick='deleteOne("${d._id}")'>
+            <i class='layui-icon layui-icon-delete'></i>删除
+        </button>
+    `;
 	}
 
 

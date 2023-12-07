@@ -7,21 +7,39 @@
     <link href="/statics/layui/css/layui.css" rel="stylesheet">
 </head>
 <body>
-<div class="layui-form layui-card-header">
-    <div class="layui-inline" style="width: 200px">
+
+<div style="padding: 20px">
+
+    <span class="layui-breadcrumb">
+                  <a>首页</a>
+                  <a><cite>模板字段管理</cite></a>
+    </span>
+    <div style="padding-top: 20px;">
+        <div class="layui-inline" style="width: 200px; padding-top: 20px;" >
             <i class="layui-icon layui-icon-return"></i>
-    <div class="layui-inline">
-<!--        <h1  id="templateName" name="templateName"></h1>-->
-        <input readonly style="border: 0" type="text" id="templateName" name="templateName" class="layui-input" style="width: 300px"/></td>
+        </div>
+        <div class="layui-inline">
+            <!--        <h1  id="templateName" name="templateName"></h1>-->
+            <input readonly style="border: 0" type="text" id="templateName" name="templateName" class="layui-input" style="width: 300px"/></td>
+        </div>
+        <div class="layui-inline">
+            <button type="button" class="layui-btn" onclick="handleSumbit();">提交模板</button>
+        </div>
+        <div class="layui-inline">
+            <button type="button" class="layui-btn" lay-filter="addBtn" onclick="handleAddField()">添加字段</button>
+        </div>
+<!--        <div>-->
+<!--            <div>-->
+<!--                <button class="layui-btn layuiadmin-btn-list" data-type="batchdel" onclick="addTemplate()">添加</button>-->
+<!--            </div>-->
+<!--        </div>-->
+        <div>
+            <table class="layui-hide" id="ID-table-demo-editmodes"></table>
+        </div>
     </div>
-    <div class="layui-inline">
-        <button type="button" class="layui-btn" onclick="handleSumbit();">提交模板</button>
-    </div>
-    <div class="layui-inline">
-        <button type="button" class="layui-btn" lay-filter="addBtn" onclick="handleAddField()">添加字段</button>
     </div>
 </div>
-<table class="layui-hide" id="ID-table-demo-editmodes"></table>
+
 <!-- 推荐 -->
 <script type="text/html" id="TPL-dropdpwn-demo">
     <button class="layui-btn layui-btn-primary dropdpwn-demo">
@@ -40,10 +58,181 @@
 <script src="/statics/js/jquery.js"></script>
 <script src="/statics/js/common.js"></script>
 <script>
-    var jsonData = [];
-    var id1 = 0;
+    var jsonData = [
+        // {
+        //     "id" : 0,
+        //     "fieldName": "字段1",
+        //     "fieldType": "输入框",
+        //     "required": "是",
+        //     "AAA" : "AAA"
+        // },
+        // {
+        //     "id" : 1,
+        //     "fieldName": "字段2",
+        //     "fieldType": "输入框",
+        //     "required": "是",
+        // }
+    ];
+    var oldJsonData=[];
+    // var jsonData=[];
     $(".layui-icon-return").click(function(){
-        window.history.back();
+        if (oldJsonData === jsonData){
+            window.history.back();
+        }else {
+            layer.confirm('您确定要放弃修改吗？', {
+                title:"系统提示"
+               ,btn: ['确定','取消'] //按钮
+            }, function(){
+                handleSumbit()
+                window.history.back();
+            }, function(){
+                window.history.back();
+            });
+        }
+
+    });
+
+    function getQueryVariable(variable){
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i=0;i<vars.length;i++) {
+            var pair = vars[i].split("=");
+            if(pair[0] == variable){return pair[1];}
+        }
+        return(false);
+    }
+    function handleSumbit(){
+        for (var i = 0; i < jsonData.length; i++) {
+            if (jsonData[i].fieldName == ""){
+                layer.msg("字段名不能为空！");
+                return
+            }
+        }
+        //获取模板数据
+        var id=getQueryVariable("id");
+        layer.confirm('您确定要保存这些模板字段吗？', {
+            title:"系统提示"
+            ,btn: ['确定','取消'] //按钮
+        }, function(){
+           if (id) {
+                var table = layui.table;
+               $.post("/form/addTemplate",{jsonData:JSON.stringify(jsonData),id:id},function(result){
+                   if(result.success){
+                       layer.msg("保存成功！");
+                       table.reload("ID-table-demo-editmodes",{
+                           data: jsonData
+                       });
+                   }else{
+                       $("#errorInfo").text(result.msg);
+                   }
+               },"json");
+           }else {
+
+
+           }
+        }, function(){
+
+        });
+    }
+    function deleteOne(id){
+        console.log(id);
+
+        layer.confirm('您确定要删除这个字段吗？', {
+            title:"系统提示"
+            ,btn: ['确定','取消'] //按钮
+        }, function(){
+            // $.post("/admin/tag/delete",{"id":id},function(result){
+            //     if(result.success){
+            //         layer.msg("删除成功！");
+            //         table.reload("tagListTable",{});
+            //     }else{
+            //         layer.msg("删除失败，请联系管理员！");
+            //     }
+            // },"json");
+            var table = layui.table;
+            for (var i = 0; i < jsonData.length; i++) {
+                if (jsonData[i].id == id){
+                    jsonData.splice(i,1);
+
+                    break;
+                }
+            }
+            layer.msg("删除成功！");
+            table.reload("ID-table-demo-editmodes",{
+                data: jsonData
+            });
+
+        }, function(){
+
+        });
+
+
+    }
+    function formatAction(d) {
+
+        return `
+        <button class='layui-btn layui-btn-warm layui-btn-xs ' onclick='deleteOne("${d.id}")'>
+            <i class='layui-icon layui-icon-delete'></i>删除
+        </button>
+    `;
+    }
+    function handleAddField(){
+
+        var table = layui.table;
+        if (jsonData.length == 0){
+            jsonData.push({
+                "id": 0,
+                "fieldName": "",
+                "fieldType": "文本",
+                "required": "否"
+            });
+
+        }else {
+            jsonData.push({
+                "id": jsonData[jsonData.length - 1].id + 1,
+                "fieldName": "",
+                "fieldType": "文本",
+                "required": "否"
+            });
+
+        }
+        table.reload("ID-table-demo-editmodes", {
+            data: jsonData
+        });
+
+    }
+    $(document).ready(function(){
+
+        var id=getQueryVariable("id");
+
+        if(id){
+            console.log("aaa")
+            $.post("/form/findById",{id:id},function(result){
+                if(result.success){
+                    var data=result.data;
+                    $("#templateName").val(data.templateName + "模板");
+                }else{
+                    layer.alert('服务器加载有问题，请联系管理员！');
+                }
+            },"json");
+            $.post("/form/getTemplateJsonById",{id:id},function(result){
+                if(result.success){
+                    var data=result.jsonData;
+                    var table = layui.table;
+                    console.log(data)
+                    console.log(data.length)
+                    // jaonData = JSON.parse(data);
+                    jsonData = data;
+                    oldJsonData = data;
+                    // id1 = jsonData.length;
+                    table.reload("ID-table-demo-editmodes", {
+                        data: jsonData
+                    });
+                }else{
+                    layer.alert('服务器加载有问题，请联系管理员！');
+                }
+            },"json");
+        }
     });
     layui.use(function(){
         var $ = layui.$;
@@ -51,35 +240,28 @@
         var form = layui.form;
         var dropdown = layui.dropdown;
 
-
-
         // 渲染
         table.render({
             elem: '#ID-table-demo-editmodes',
-            url: '/admin/jsonFile/test.json', // 此处为静态模拟数据，实际使用时需换成真实接口
-            page: true,
+            // url: '/form/getTemplateJsonById', // 此处为静态模拟数据，实际使用时需换成真实接口
+            data: jsonData,
             css: [ // 设置单元格样式
                 // 取消默认的溢出隐藏，并设置适当高度
                 '.layui-table-cell{height: 50px; line-height: 40px;}',
                 '.layui-table-cell select{height: 36px; padding: 0 5px;}'
             ].join(''),
             cols: [[ // 表头
-                {field: 'fieldName', title: '字段名', edit: 'textarea'},
-                {field: 'fieldType', title: '字段类型', width:200, align: 'center', templet: '#TPL-dropdpwn-demo'},
-                {field: 'required', title: '是否必填', width:200, align: 'center', templet: '#TPL-dropdpwn-demo1'},
+                {field: 'fieldName', title: '字段名', edit: 'textarea',},
+                {field: 'fieldType',width: 250, title: '字段类型', align: 'center', templet: '#TPL-dropdpwn-demo'},
+                {field: 'required', width: 200,title: '是否必填', align: 'center', templet: '#TPL-dropdpwn-demo1'},
+                // ,{fixed:'right',field:'action', title: '操作',align:'center',templet:formatAction}
+                {width: 160,title: '操作', style:"width: 100%" ,align:'center',templet: formatAction,rowspan: 2}
+
+
             ]],
             done: function(res, curr, count){
                 var options = this;
-                // layui form select 事件
-                form.on('select(select-demo)', function(obj){
-                    console.log(obj); // 获取选中项数据
 
-                    // 获取当前行数据(如 id 等字段，以作为数据修改的索引)
-                    var data = table.getRowData(options.id, obj.elem);
-                    // 更新数据中对应的字段
-                    data.city = value;
-                    console.log(data);
-                });
 
                 // dropdown 方式的下拉选择
                 dropdown.render({
@@ -90,21 +272,26 @@
                         title: '文本',
                         id: 100
                     },{
-                        title: '下拉框',
+                        title: '文本域',
                         id: 101
-                    },{
-                        title: '复选框',
-                        id: 102
-                    },{
-                        title: '单选框',
-                        id: 103
-                    }],
+                    }
+                    // },{
+                    //     title: '下拉框',
+                    //     id: 101
+                    // },{
+                    //     title: '复选框',
+                    //     id: 102
+                    // },{
+                    //     title: '单选框',
+                    //     id: 103
+                    // }
+                    ],
                     click: function(obj){
                         var data = table.getRowData(options.id, this.elem); // 获取当前行数据(如 id 等字段，以作为数据修改的索引)
-
+                        console.log(data)
                         this.elem.find('span').html(obj.title);
                         // 更新数据中对应的字段
-                        data.sex = obj.title;
+                        data.fieldType = obj.title;
                         // 显示 - 仅用于演示
                         // layer.msg('选中值: '+ obj.title +'<br>当前行数据：'+ JSON.stringify(data));
                     }
@@ -122,13 +309,13 @@
                     }],
                     click: function(obj){
                         var data = table.getRowData(options.id, this.elem); // 获取当前行数据(如 id 等字段，以作为数据修改的索引)
-
+                        console.log(data)
                         this.elem.find('span').html(obj.title);
                         // 更新数据中对应的字段
                         console.log("sssss")
-                        data.sex = obj.title;
-                        // 显示 - 仅用于演示
+                        data.required = obj.title;
                         layer.msg('选中值: '+ obj.title +'<br>当前行数据：'+ JSON.stringify(data));
+
                     }
                 });
                 // 获取当前行数据
@@ -142,91 +329,18 @@
                     var value = obj.value // 得到修改后的值
                     var data = obj.data // 得到所在行所有键值
                     var field = obj.field; // 得到字段
-
+                    console.log("------------------")
+                    console.log(value)
+                    console.log(data)
+                    console.log(field)
+                    console.log("------------------")
                     // 更新数据中对应的字段
                     var update = {};
                     update[field] = value;
                     obj.update(update);
-
-                    // 编辑后续操作，如提交更新请求，以完成真实的数据更新
-                    // …
-
-                    // 显示 - 仅用于演示
-                    layer.msg('编辑值: '+ value +'<br>当前行数据：'+ JSON.stringify(data));
                 });
-
-                // 更多编辑方式……
             }
         });
-    });
-    function getQueryVariable(variable){
-        var query = window.location.search.substring(1);
-        var vars = query.split("&");
-        for (var i=0;i<vars.length;i++) {
-            var pair = vars[i].split("=");
-            if(pair[0] == variable){return pair[1];}
-        }
-        return(false);
-    }
-    function handleSumbit(){
-        if ()
-
-        //获取模板数据
-        var id=getQueryVariable("id");
-        layer.confirm('您确定要保存这些模板字段吗？', {
-            title:"系统提示"
-            ,btn: ['确定','取消'] //按钮
-        }, function(){
-           if (id) {
-               layer.closeAll('dialog');
-               $.post("local:8080/form/addTemplate", {id:id,obj: jsonData}, function (result) {
-                   if (result.success) {
-                       layer.msg("添加成功！");
-                       // table.reload("postListTable",{});
-                   } else {
-                       layer.msg("添加失败，请联系管理员！");
-                   }
-               }, "json");
-           }else {
-
-               $.post("local:8080/form/addTemplate", {id: id,obj: jsonData}, function (result) {
-                   if (result.success) {
-                       layer.msg("添加成功！");
-                       // table.reload("postListTable",{});
-                   } else {
-                       layer.msg("添加失败，请联系管理员！");
-                   }
-               }, "json");
-           }
-        }, function(){
-
-        });
-    }
-    function handleAddField(){
-        jaonData.data.push({
-            "fieldName": "",
-            "fieldType": "文本",
-            "required": "否"
-        });
-
-    }
-    $(function(){
-
-        var id=getQueryVariable("id");
-
-        if(id){
-            console.log("aaa")
-            $.post("/form/findById",{id:id},function(result){
-                if(result.success){
-                    var data=result.data;
-                    $("#templateName").val(data.templateName + "模板");
-                    // jsonData = data.jsonData;
-                    // console.log(jsonData)
-                }else{
-                    layer.alert('服务器加载有问题，请联系管理员！');
-                }
-            },"json");
-        }
     });
 </script>
 
