@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Python-后台系统管理页面</title>
+    <link href="/systemImages/favicon.ico" rel="SHORTCUT ICON">
+    <link rel="stylesheet" href="/statics/layui/css/layui.css"/>
+    <link rel="stylesheet" href="/statics/css/css.css"/>
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo"><a href="/admin" style="color: gray">Python-后台管理</a></div>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item">
+                <a href="javascript:;">
+                    <img src="/systemImages/manager.jpg" class="layui-nav-img" th:text="${session.SPRING_SECURITY_CONTEXT.authentication.principal.username}"></img>
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="/logout">安全退出</a></dd>
+                </dl>
+            </li>
+        </ul>
+    </div>
+
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+            <ul class="layui-nav layui-nav-tree"  lay-filter="test">
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a class="" href="javascript:;">帖子管理</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:openPage('saveArticle.html')">发布帖子</a></dd>
+                    </dl>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:openPage('articleManage.html')">帖子管理</a></dd>
+                    </dl>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:openPage('tagManage.html')">Tag标签管理</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a href="javascript:;">系统管理</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:openPage('menuManage.html')">菜单管理</a></dd>
+                    </dl>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:openPage('linkManage.html')">友情链接管理</a></dd>
+                    </dl>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:openPage('propertyManage.html')">系统属性设置</a></dd>
+                    </dl>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:openPage('postManage.html')">自定义帖子管理</a></dd>
+                    </dl>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:refresh()">刷新系统缓存</a></dd>
+                    </dl>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="layui-body">
+        <iframe id="pageFrame" frameborder='0' scrolling='auto' style='width:100%;height:98%' src="/admin/default.html"></iframe>
+    </div>
+
+    <div class="layui-footer">
+        <!-- 底部固定区域 -->
+        Copyright © 2012-2024  南通小锋网络科技有限公司 版权所有
+    </div>
+</div>
+<script src="/statics/layui/layui.js"></script>
+<script src="/statics/js/jquery.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    layui.use(['element','laypage','form'], function(){
+        var element = layui.element; //导航的hover效果、二级菜单等功能，需要依赖element模块
+        var $ = layui.jquery; // 使用jquery
+        var laypage = layui.laypage;
+    });
+
+    function openPage(page){
+        $("#pageFrame").attr("src","/admin/"+page);
+    }
+    function refresh(){
+        $.get("/refresh",function(result){
+            if(result.success){
+                layer.msg("系统缓存刷新成功！");
+            }
+        });
+    }
+
+    /*]]>*/
+</script>
+</body>
+</html>

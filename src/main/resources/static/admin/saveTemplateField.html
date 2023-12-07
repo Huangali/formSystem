@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Demo</title>
+    <link href="/statics/layui/css/layui.css" rel="stylesheet">
+</head>
+<body>
+<div class="layui-form layui-card-header">
+    <div class="layui-inline" style="width: 200px">
+            <i class="layui-icon layui-icon-return"></i>
+    <div class="layui-inline">
+<!--        <h1  id="templateName" name="templateName"></h1>-->
+        <input readonly style="border: 0" type="text" id="templateName" name="templateName" class="layui-input" style="width: 300px"/></td>
+    </div>
+    <div class="layui-inline">
+        <button type="button" class="layui-btn" onclick="handleSumbit();">提交模板</button>
+    </div>
+    <div class="layui-inline">
+        <button type="button" class="layui-btn" lay-filter="addBtn" onclick="handleAddField()">添加字段</button>
+    </div>
+</div>
+<table class="layui-hide" id="ID-table-demo-editmodes"></table>
+<!-- 推荐 -->
+<script type="text/html" id="TPL-dropdpwn-demo">
+    <button class="layui-btn layui-btn-primary dropdpwn-demo">
+        <span>{{= d.fieldType || '输入框' }}</span>
+        <i class="layui-icon layui-icon-down layui-font-12"></i>
+    </button>
+</script>
+<script type="text/html" id="TPL-dropdpwn-demo1">
+    <button class="layui-btn layui-btn-primary dropdpwn-demo1">
+        <span>{{= d.required || '是' }}</span>
+        <i class="layui-icon layui-icon-down layui-font-12"></i>
+    </button>
+</script>
+
+<script src="/statics/layui/layui.js"></script>
+<script src="/statics/js/jquery.js"></script>
+<script src="/statics/js/common.js"></script>
+<script>
+    var jsonData = [];
+    var id1 = 0;
+    $(".layui-icon-return").click(function(){
+        window.history.back();
+    });
+    layui.use(function(){
+        var $ = layui.$;
+        var table = layui.table;
+        var form = layui.form;
+        var dropdown = layui.dropdown;
+
+
+
+        // 渲染
+        table.render({
+            elem: '#ID-table-demo-editmodes',
+            url: '/admin/jsonFile/test.json', // 此处为静态模拟数据，实际使用时需换成真实接口
+            page: true,
+            css: [ // 设置单元格样式
+                // 取消默认的溢出隐藏，并设置适当高度
+                '.layui-table-cell{height: 50px; line-height: 40px;}',
+                '.layui-table-cell select{height: 36px; padding: 0 5px;}'
+            ].join(''),
+            cols: [[ // 表头
+                {field: 'fieldName', title: '字段名', edit: 'textarea'},
+                {field: 'fieldType', title: '字段类型', width:200, align: 'center', templet: '#TPL-dropdpwn-demo'},
+                {field: 'required', title: '是否必填', width:200, align: 'center', templet: '#TPL-dropdpwn-demo1'},
+            ]],
+            done: function(res, curr, count){
+                var options = this;
+                // layui form select 事件
+                form.on('select(select-demo)', function(obj){
+                    console.log(obj); // 获取选中项数据
+
+                    // 获取当前行数据(如 id 等字段，以作为数据修改的索引)
+                    var data = table.getRowData(options.id, obj.elem);
+                    // 更新数据中对应的字段
+                    data.city = value;
+                    console.log(data);
+                });
+
+                // dropdown 方式的下拉选择
+                dropdown.render({
+                    elem: '.dropdpwn-demo',
+                    // trigger: 'hover',
+                    // 此处的 data 值，可根据 done 返回的 res 遍历来赋值
+                    data: [{
+                        title: '文本',
+                        id: 100
+                    },{
+                        title: '下拉框',
+                        id: 101
+                    },{
+                        title: '复选框',
+                        id: 102
+                    },{
+                        title: '单选框',
+                        id: 103
+                    }],
+                    click: function(obj){
+                        var data = table.getRowData(options.id, this.elem); // 获取当前行数据(如 id 等字段，以作为数据修改的索引)
+
+                        this.elem.find('span').html(obj.title);
+                        // 更新数据中对应的字段
+                        data.sex = obj.title;
+                        // 显示 - 仅用于演示
+                        // layer.msg('选中值: '+ obj.title +'<br>当前行数据：'+ JSON.stringify(data));
+                    }
+                });
+                dropdown.render({
+                    elem: '.dropdpwn-demo1',
+                    // trigger: 'hover',
+                    // 此处的 data 值，可根据 done 返回的 res 遍历来赋值
+                    data: [{
+                        title: '是',
+                        id: 100
+                    },{
+                        title: '否',
+                        id: 101
+                    }],
+                    click: function(obj){
+                        var data = table.getRowData(options.id, this.elem); // 获取当前行数据(如 id 等字段，以作为数据修改的索引)
+
+                        this.elem.find('span').html(obj.title);
+                        // 更新数据中对应的字段
+                        console.log("sssss")
+                        data.sex = obj.title;
+                        // 显示 - 仅用于演示
+                        layer.msg('选中值: '+ obj.title +'<br>当前行数据：'+ JSON.stringify(data));
+                    }
+                });
+                // 获取当前行数据
+                table.getRowData = function(tableId, elem){
+                    var index = $(elem).closest('tr').data('index');
+                    return table.cache[tableId][index] || {};
+                };
+
+                // 单元格普通编辑事件
+                table.on('edit(ID-table-demo-editmodes)', function(obj){
+                    var value = obj.value // 得到修改后的值
+                    var data = obj.data // 得到所在行所有键值
+                    var field = obj.field; // 得到字段
+
+                    // 更新数据中对应的字段
+                    var update = {};
+                    update[field] = value;
+                    obj.update(update);
+
+                    // 编辑后续操作，如提交更新请求，以完成真实的数据更新
+                    // …
+
+                    // 显示 - 仅用于演示
+                    layer.msg('编辑值: '+ value +'<br>当前行数据：'+ JSON.stringify(data));
+                });
+
+                // 更多编辑方式……
+            }
+        });
+    });
+    function getQueryVariable(variable){
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i=0;i<vars.length;i++) {
+            var pair = vars[i].split("=");
+            if(pair[0] == variable){return pair[1];}
+        }
+        return(false);
+    }
+    function handleSumbit(){
+        if ()
+
+        //获取模板数据
+        var id=getQueryVariable("id");
+        layer.confirm('您确定要保存这些模板字段吗？', {
+            title:"系统提示"
+            ,btn: ['确定','取消'] //按钮
+        }, function(){
+           if (id) {
+               layer.closeAll('dialog');
+               $.post("local:8080/form/addTemplate", {id:id,obj: jsonData}, function (result) {
+                   if (result.success) {
+                       layer.msg("添加成功！");
+                       // table.reload("postListTable",{});
+                   } else {
+                       layer.msg("添加失败，请联系管理员！");
+                   }
+               }, "json");
+           }else {
+
+               $.post("local:8080/form/addTemplate", {id: id,obj: jsonData}, function (result) {
+                   if (result.success) {
+                       layer.msg("添加成功！");
+                       // table.reload("postListTable",{});
+                   } else {
+                       layer.msg("添加失败，请联系管理员！");
+                   }
+               }, "json");
+           }
+        }, function(){
+
+        });
+    }
+    function handleAddField(){
+        jaonData.data.push({
+            "fieldName": "",
+            "fieldType": "文本",
+            "required": "否"
+        });
+
+    }
+    $(function(){
+
+        var id=getQueryVariable("id");
+
+        if(id){
+            console.log("aaa")
+            $.post("/form/findById",{id:id},function(result){
+                if(result.success){
+                    var data=result.data;
+                    $("#templateName").val(data.templateName + "模板");
+                    // jsonData = data.jsonData;
+                    // console.log(jsonData)
+                }else{
+                    layer.alert('服务器加载有问题，请联系管理员！');
+                }
+            },"json");
+        }
+    });
+</script>
+
+</body>
+</html>
