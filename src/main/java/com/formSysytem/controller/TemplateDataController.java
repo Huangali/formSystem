@@ -34,7 +34,7 @@ public class TemplateDataController {
     public Map<String,Object> list(@RequestParam(value = "page",required = false) Integer page, @RequestParam(value = "limit",required = false) Integer limit, @RequestParam(value = "templateName",required = false) String templateName){
         Map<String,Object> map = new HashMap<>();
         Map<String, Object> allList = templateDataService.findAllList(templateName, page, limit);
-        Integer count = (Integer) allList.get("count");
+        Integer count = (Integer) allList.get("total");
 //        List<Documented> content = (List<Documented>) allList.get("content");
         List<Document> data = (List<Document>) allList.get("data");
 

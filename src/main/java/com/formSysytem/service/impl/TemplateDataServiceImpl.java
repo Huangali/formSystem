@@ -46,7 +46,7 @@ public class TemplateDataServiceImpl implements TemplateDataService {
                 }
             });
         }
-        int total = templateName.length()/limit+1;
+        int total = templateData.size();
         List<Document> documenteds = null;
         if (page == 1){
             if (templateData.size()>limit){
@@ -55,7 +55,7 @@ public class TemplateDataServiceImpl implements TemplateDataService {
                 documenteds = templateData;
             }
         }else {
-            if (templateData.size()>limit){
+            if (templateData.size()-(page*limit)>limit){
                 documenteds = templateData.subList((page-1)*limit, page*limit);
             }else {
                 documenteds = templateData.subList((page-1)*limit, templateData.size());

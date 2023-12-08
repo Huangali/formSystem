@@ -47,7 +47,7 @@ public class TemplateController {
         map.put("msg", "查询成功");
         map.put("count", totalPages);
         map.put("data", content);
-        return map;
+        return map ;
     }
 
     /**
