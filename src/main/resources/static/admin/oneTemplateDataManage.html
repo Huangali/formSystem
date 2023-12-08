@@ -65,34 +65,32 @@
 
 	}
 	
-	$(document).ready(function(){
-
-		var id=getQueryVariable("id");
-
-		if(id){
-			console.log("aaa")
-			$.post("/form/findById",{id:id},function(result){
-				if(result.success){
-					var data=result.data;
-					templateName = data.templateName;
-					$("#templateName").val(data.templateName + "模板");
-				}else{
-					layer.alert('服务器加载有问题，请联系管理员！');
-				}
-			},"json");
-			$.post("/form/getTemplateJsonById",{id:id},function(result){
-				if(result.success){
-					var data=result.jsonData;
-					var table = layui.table;
-					console.log(data)
-					console.log(data.length)
-					jsonData = data;
-				}else{
-					layer.alert('服务器加载有问题，请联系管理员！');
-				}
-			},"json");
-		}
-	});
+	// $(document).ready(function(){
+	//
+	// 	var id=getQueryVariable("id");
+	//
+	// 	if(id){
+	// 		$.post("/form/findById",{id:id},function(result){
+	// 			if(result.success){
+	// 				var data=result.data;
+	// 				templateName = data.templateName;
+	// 				$("#templateName").val(data.templateName + "模板");
+	// 			}else{
+	// 				layer.alert('服务器加载有问题，请联系管理员！');
+	// 			}
+	// 		},"json");
+	// 		$.post("/form/getTemplateJsonById",{id:id},function(result){
+	// 			if(result.success){
+	// 				var data=result.jsonData;
+	// 				var table = layui.table;
+	// 				console.log(data)
+	// 				jsonData = data;
+	// 			}else{
+	// 				layer.alert('服务器加载有问题，请联系管理员！');
+	// 			}
+	// 		},"json");
+	// 	}
+	// });
 	layui.use('table', function(){
 		var id=getQueryVariable("id");
 		var table = layui.table;
@@ -110,20 +108,30 @@
 				var data = result.jsonData;
 				var table = layui.table;
 				console.log(data);
-				console.log(data.length);
 				jsonData = data;
-				oldJsonData = data;
-				cols = createCols(data);
-				console.log(cols)
-				table.render({ // 使用table模块的render方法渲染表格
-					elem: '#ID-table-demo-editmodes', // 指定表格的ID
-					url:'/templateData/list',
-					cols: [cols], // 设置表头
-					page: true,
-					where: {
-						templateName: templateName
-					},
-				});
+				console.log(data)
+				if (data != null) {
+					cols = createCols(data);
+					console.log(cols)
+					table.render({ // 使用table模块的render方法渲染表格
+						elem: '#ID-table-demo-editmodes', // 指定表格的ID
+						url: '/templateData/list',
+						cols: [cols], // 设置表头
+						page: true,
+						where: {
+							templateName: templateName
+						},
+					});
+				}else {
+					layer.alert('');
+					layer.confirm('模板没有添加模板字段，请先添加模板字段，再去添加数据！', {
+						title: "系统提示"
+						, btn: ['确定'] //按钮
+					}, function () {
+						window.history.back();
+					});
+
+				}
 				function createCols(data){
 					var id = getQueryVariable("id");
 					console.log("test:"+data)

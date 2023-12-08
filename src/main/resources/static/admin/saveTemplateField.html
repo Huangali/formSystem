@@ -16,7 +16,7 @@
     </span>
     <div style="padding-top: 20px;">
         <div class="layui-inline" style="width: 200px; padding-top: 20px;" >
-            <i class="layui-icon layui-icon-return"></i>
+            <i class="layui-icon layui-icon-return returnBack"></i>
         </div>
         <div class="layui-inline">
             <!--        <h1  id="templateName" name="templateName"></h1>-->
@@ -74,21 +74,17 @@
         // }
     ];
     var oldJsonData=[];
-    // var jsonData=[];
-    $(".layui-icon-return").click(function(){
-        if (oldJsonData === jsonData){
-            window.history.back();
-        }else {
+    $(".returnBack").click(function(){
+
+            // isUpdate(jsonData,oldJsonData)
             layer.confirm('您确定要放弃修改吗？', {
-                title:"系统提示"
-               ,btn: ['确定','取消'] //按钮
-            }, function(){
-                handleSumbit()
+                title: "系统提示"
+               , btn: ['确定','取消'] //按钮
+            }, function () {
                 window.history.back();
-            }, function(){
-                window.history.back();
+            }, function () {
+
             });
-        }
 
     });
 
@@ -105,7 +101,7 @@
         for (var i = 0; i < jsonData.length; i++) {
             if (jsonData[i].fieldName == ""){
                 layer.msg("字段名不能为空！");
-                return
+                return false
             }
         }
         //获取模板数据
@@ -122,17 +118,17 @@
                        table.reload("ID-table-demo-editmodes",{
                            data: jsonData
                        });
+                       return true;
                    }else{
                        $("#errorInfo").text(result.msg);
+                       return false;
                    }
                },"json");
-           }else {
-
-
            }
         }, function(){
 
         });
+        // return true;
     }
     function deleteOne(id){
         console.log(id);
@@ -223,7 +219,7 @@
                     console.log(data.length)
                     // jaonData = JSON.parse(data);
                     jsonData = data;
-                    oldJsonData = data;
+                    oldJsonData = jsonData;
                     // id1 = jsonData.length;
                     table.reload("ID-table-demo-editmodes", {
                         data: jsonData
@@ -292,14 +288,10 @@
                         this.elem.find('span').html(obj.title);
                         // 更新数据中对应的字段
                         data.fieldType = obj.title;
-                        // 显示 - 仅用于演示
-                        // layer.msg('选中值: '+ obj.title +'<br>当前行数据：'+ JSON.stringify(data));
                     }
                 });
                 dropdown.render({
                     elem: '.dropdpwn-demo1',
-                    // trigger: 'hover',
-                    // 此处的 data 值，可根据 done 返回的 res 遍历来赋值
                     data: [{
                         title: '是',
                         id: 100
@@ -314,7 +306,7 @@
                         // 更新数据中对应的字段
                         console.log("sssss")
                         data.required = obj.title;
-                        layer.msg('选中值: '+ obj.title +'<br>当前行数据：'+ JSON.stringify(data));
+                        // layer.msg('选中值: '+ obj.title +'<br>当前行数据：'+ JSON.stringify(data));
 
                     }
                 });
