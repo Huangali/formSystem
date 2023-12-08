@@ -47,7 +47,6 @@
 									// layer.msg("字段" + this.name + "不能为空！");
 									// return
 									//判段是否为空
-
 									array.push(this.name);
 								}else {
 									rowData[this.name] = $(this).val();
@@ -150,7 +149,6 @@
 						$.post("/templateData/getTemplateDataById",{id:id,dataId:dataId},function(result){
 							if(result.success){
 								var data=result.data;
-								console.log(data["字段1"])
 								for (let i = 0; i < data.length; i++) {
 									for (let j = 0; j < jsonData.length; j++) {
 										console.log(data[i][jsonData[j].fieldName])
@@ -175,10 +173,26 @@
 			console.log(jsonData[i])
 			var tr = '';
 			if (jsonData[i].required == "是"){
-				tr = '<tr><td style="color: red">'+jsonData[i].fieldName+'：</td><td><input type="text" id='+jsonData[i].fieldName+' name='+jsonData[i].fieldName+' class="layui-input" style="width: 300px"/></td></tr>';
+
+				if (jsonData[i].fieldType === "文本"){
+					tr = '<tr><td style="color: red">'+jsonData[i].fieldName+'：</td><td><input type="text" id='+jsonData[i].fieldName+' name='+jsonData[i].fieldName+' class="layui-input" style="width: 300px"/></td></tr>';
+				}else if (jsonData[i].fieldType === "日期"){
+					tr = '<tr><td style="color: red">'+jsonData[i].fieldName+'：</td><td><input type="datetime-local" id='+jsonData[i].fieldName+' name='+jsonData[i].fieldName+' class="layui-input" style="width: 300px"/></td></tr>';
+				}else if (jsonData[i].fieldType === "只能输入数字"){
+					tr = '<tr><td style="color: red">'+jsonData[i].fieldName+'：</td><td><input type="number" id='+jsonData[i].fieldName+' name='+jsonData[i].fieldName+' class="layui-input" style="width: 300px"/></td></tr>';
+				}else if (jsonData[i].fieldType === "邮箱"){
+					tr = '<tr><td style="color: red">'+jsonData[i].fieldName+'：</td><td><input type="email" id='+jsonData[i].fieldName+' name='+jsonData[i].fieldName+' class="layui-input" style="width: 300px"/></td></tr>';
+				}
 			}else {
-				tr = '<tr><td>' + jsonData[i].fieldName + '：</td><td><input type="text" id=' + jsonData[i].fieldName + ' name=' + jsonData[i].fieldName + ' class="layui-input" style="width: 300px"/></td></tr>';
-			}
+				if (jsonData[i].fieldType === "文本"){
+					tr = '<tr><td>'+jsonData[i].fieldName+'：</td><td><input type="text" id='+jsonData[i].fieldName+' name='+jsonData[i].fieldName+' class="layui-input" style="width: 300px"/></td></tr>';
+				}else if (jsonData[i].fieldType === "日期"){
+					tr = '<tr><td>'+jsonData[i].fieldName+'：</td><td><input type="datetime-local" id='+jsonData[i].fieldName+' name='+jsonData[i].fieldName+' class="layui-input" style="width: 300px"/></td></tr>';
+				}else if (jsonData[i].fieldType === "只能输入数字"){
+					tr = '<tr><td>'+jsonData[i].fieldName+'：</td><td><input type="number" id='+jsonData[i].fieldName+' name='+jsonData[i].fieldName+' class="layui-input" style="width: 300px"/></td></tr>';
+				}else if (jsonData[i].fieldType === "邮箱"){
+					tr = '<tr><td>'+jsonData[i].fieldName+'：</td><td><input type="email" id='+jsonData[i].fieldName+' name='+jsonData[i].fieldName+' class="layui-input" style="width: 300px"/></td></tr>';
+				}	}
 			document.querySelector('table').innerHTML += tr;
 		}
 		document.querySelector('table').innerHTML += '<tr>\n' +
