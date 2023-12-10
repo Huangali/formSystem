@@ -42,7 +42,7 @@ public class TemplateController {
         Map<String, Object> map = new HashMap<>();
         Page<Template> allList = templateService.findAllList(page - 1, limit);
         List<Template> content = allList.getContent();
-        int totalPages = allList.getTotalPages();
+        long totalPages = allList.getTotalElements();
         map.put("code", 0);
         map.put("msg", "查询成功");
         map.put("count", totalPages);
