@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/statics/css/login.css"></link>
+</head>
+
+<body>
+<script src="/statics/layui/layui.js"></script>
+<script src="/statics/js/jquery.js"></script>
+<script type="text/javascript">
+    //登陆
+    $(document).ready(function() {
+        $('#loginForm').submit(function(event) {
+            // 阻止表单默认提交行为
+            event.preventDefault();
+
+            // 获取用户名和密码
+            var username = $('#username').val();
+            var password = $('#password').val();
+
+            // 进行用户名和密码的简单判断
+            if (username.trim() === '' || password.trim() === '') {
+
+                $("#errorInfo").text("用户名或密码不能为空！");
+
+            } else {
+                $.post("/admin/login",{userName:username,password:password},function(result){
+                    if(result.success){
+                        // layer.msg("删除成功！");
+                        // table.reload("listTable",{});
+                        window.location.href="/";
+                    }else{
+                        $("#errorInfo").text(result.msg);
+                    }
+                },"json");
+
+            }
+        });
+    });
+    //注册
+    $(document).ready(function() {
+        $('#signForm').submit(function(event) {
+            // 阻止表单默认提交行为
+            event.preventDefault();
+
+            // 获取用户名和密码
+            var username = $('#username1').val();
+            var password = $('#password1').val();
+
+            // 进行用户名和密码的简单判断
+            if (username.trim() === '' || password.trim() === '') {
+
+                $("#errorInfo1").text("用户名或密码不能为空！");
+
+            } else {
+                $.post("/admin/saveUser",{userName:username,password:password},function(result){
+                    if(result.success){
+                        // layer.msg("删除成功！");
+                        // table.reload("listTable",{});
+                        $('#signIn').click();
+                        $("#errorInfo").text("注册成功！");
+                    }else{
+                        $("#errorInfo1").text(result.msg);
+                    }
+                },"json");
+
+            }
+        });
+    });
+</script>
+<div class="container right-panel-active">
+    <!-- Sign Up -->
+    <div  class="container__form container--signup">
+        <form id = "signForm" action="#" class="form" id="form1">
+            <h2 class="form__title">注册</h2>
+            <input id="username1" type="text" placeholder="User" class="input" />
+            <input id="password1" type="password" placeholder="Password" class="input" />
+            <font id="errorInfo1" color="red"></font>
+            <button class="btn">注册</button>
+        </form>
+    </div>
+
+    <!-- Sign In -->
+    <div  class="container__form container--signin">
+        <form id="loginForm" action="#" class="form" id="form2">
+            <h2 class="form__title">登陆</h2>
+            <input id="username" type="username" placeholder="User" class="input" />
+            <input id="password" type="password" placeholder="Password" class="input" />
+            <font id="errorInfo" color="red"></font>
+            <button class="btn">登陆</button>
+        </form>
+    </div>
+
+    <!-- Overlay -->
+    <div class="container__overlay">
+        <div class="overlay">
+            <div class="overlay__panel overlay--left">
+
+                <button class="btn" id="signIn">登陆</button>
+            </div>
+            <div class="overlay__panel overlay--right">
+                <button class="btn" id="signUp">注册</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const signInBtn = document.getElementById("signIn");
+    const signUpBtn = document.getElementById("signUp");
+    const fistForm = document.getElementById("form1");
+    const secondForm = document.getElementById("form2");
+    const container = document.querySelector(".container");
+
+    signInBtn.addEventListener("click", () => {
+        container.classList.remove("right-panel-active");
+    });
+
+    signUpBtn.addEventListener("click", () => {
+        container.classList.add("right-panel-active");
+    });
+
+    fistForm.addEventListener("submit", (e) => e.preventDefault());
+    secondForm.addEventListener("submit", (e) => e.preventDefault());
+
+</script>
+</body>
+
+</html>

@@ -12,12 +12,5 @@ spring:
       host: localhost
       port: 27017
       database: form
-springUserName: admin
-springPassword: 123456
-systemImagesFilePath: D:\\图片\pythonLT\\images\\
-randomImagesFilePath: D:\\图片\\pythonLT\\randomImages\\
-articleImagesFilePath: D:\\图片\\pythonLT\\articleImages\\
-
-
 
 

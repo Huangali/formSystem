@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Change Password</title>
+
+    <link rel="stylesheet" href="/statics/layui/css/layui.css"></link>
+    <link rel="stylesheet" href="/statics/css/change.css"></link>
+</head>
+<body>
+<script src="/statics/layui/layui.js"></script>
+<script src="/statics/js/jquery.js"></script>
+<script type="text/javascript">
+    //登陆
+    $(document).ready(function() {
+        $('#changePasswordForm').submit(function(event) {
+            // 阻止表单默认提交行为
+            event.preventDefault();
+
+            // 获取用户名和密码
+            var oldPassword = $('#oldPassword').val();
+            var newPassword = $('#newPassword').val();
+            var confirmPassword = $('#confirmPassword').val();
+            if (confirmPassword !== newPassword){
+                $("#errorInfo").text("密码与确认密码不相同");
+                return;
+            }
+            $.post("/admin/saveUser",{password:oldPassword,newPassword:newPassword},function(result){
+                if(result.success){
+                    $("#errorInfo").text("修改成功！");
+                }else{
+                    $("#errorInfo").text(result.msg);
+                }
+            },"json");
+
+        });
+    });
+
+</script>
+<div>
+    <h2>修改密码</h2>
+
+    <!-- 修改密码表单 -->
+    <form id="changePasswordForm"  method="post">
+        <label for="oldPassword">
+            <span>旧密码:</span>
+            <input type="password" id="oldPassword" name="oldPassword" required>
+        </label>
+
+        <label for="newPassword">
+            <span>新密码:</span>
+            <input type="password" id="newPassword" name="newPassword" required>
+        </label>
+
+        <label for="confirmPassword">
+            <span>确认新密码:</span>
+            <input type="password" id="confirmPassword" name="confirmPassword" required>
+        </label>
+        <font id="errorInfo" color="red"></font>
+        <button type="submit">提交</button>
+    </form>
+</div>
+
+</body>
+</html>
